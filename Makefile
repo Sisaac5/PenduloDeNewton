@@ -2,7 +2,7 @@ CC = g++
 CFLAGS = -Wall
 PROG = main
 
-SRCS = mov.cpp
+SRCS = main.cpp
 
 ifeq ($(shell uname),Darwin)
 	LIBS = -framework OpenGL -framework GLUT

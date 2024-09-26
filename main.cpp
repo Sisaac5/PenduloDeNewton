@@ -1,8 +1,13 @@
 #include <GL/glut.h>
 #include <stdio.h>
 
-GLint LARGURA = 600,
-      ALTURA = 600;
+GLint LARGURA = 1200,
+      ALTURA = 1200;
+
+GLfloat LARGURA_BASE = 7.5,
+        ALTURA_BASE = 0.8,
+        PROFUNDIDADE_BASE = 5.5;
+
 
 void initGlut(int *argc, char **argv) {
     glutInit(argc, argv);
@@ -28,63 +33,81 @@ void inicializacao() {
     glTranslatef(0.0f, 0.0f, -5.0f); // Afasta a câmera do cubo
 }
 
-void drawCube() {
-
-    gluLookAt(-1.0f, 3.0f, 3.0f, //lookfrom 
-    0, 0, 0, //lookat 
-    0, 1, 0); //vetor normal
-
+void drawCube(GLfloat hight, GLfloat width, GLfloat depth,
+              float x, float y, float z) {
 
     glBegin(GL_QUADS);  // Inicia o desenho dos quadrados
 
-    // Frente (Z positivo)
-    glColor3f(1.0f, 0.0f, 0.0f); // Cor vermelha
-    glVertex3f(-1.0f, -1.0f,  1.0f);
-    glVertex3f( 1.0f, -1.0f,  1.0f);
-    glVertex3f( 1.0f,  1.0f,  1.0f);
-    glVertex3f(-1.0f,  1.0f,  1.0f);
+    // Frente 
+    glVertex3f(x, y, z);
+    glVertex3f(x, y + hight, z);
+    glVertex3f(x, y + hight, z + depth);
+    glVertex3f(x, y, z + depth);
 
-    // Traseira (Z negativo)
-    glColor3f(0.0f, 1.0f, 0.0f); // Cor verde
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glVertex3f(-1.0f,  1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f, -1.0f);
+    // Traseira 
+    glVertex3f(x + width, y, z);
+    glVertex3f(x + width, y + hight, z);
+    glVertex3f(x + width, y + hight, z + depth);
+    glVertex3f(x + width, y, z + depth);
 
-    // Superior (Y positivo)
-    glColor3f(0.0f, 0.0f, 1.0f); // Cor azul
-    glVertex3f(-1.0f,  1.0f, -1.0f);
-    glVertex3f(-1.0f,  1.0f,  1.0f);
-    glVertex3f( 1.0f,  1.0f,  1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
+    // Superior 
+    glVertex3f(x, y + hight, z);
+    glVertex3f(x, y + hight, z + depth);
+    glVertex3f(x + width, y + hight, z + depth);
+    glVertex3f(x + width, y + hight, z);
 
-    // Inferior (Y negativo)
-    glColor3f(1.0f, 1.0f, 0.0f); // Cor amarela
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f,  1.0f);
-    glVertex3f(-1.0f, -1.0f,  1.0f);
+    // Inferior 
+    glVertex3f(x, y, z);
+    glVertex3f(x, y, z + depth);
+    glVertex3f(x + width, y, z + depth);
+    glVertex3f(x + width, y, z);
 
-    // Lateral direita (X positivo)
-    glColor3f(1.0f, 0.0f, 1.0f); // Cor rosa
-    glVertex3f( 1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f,  1.0f);
-    glVertex3f( 1.0f, -1.0f,  1.0f);
+    // Lateral direita 
+    glVertex3f(x, y, z);
+    glVertex3f(x, y + hight, z);
+    glVertex3f(x + width, y + hight, z);
+    glVertex3f(x + width, y, z);
 
-    // Lateral esquerda (X negativo)
-    glColor3f(0.0f, 1.0f, 1.0f); // Cor ciano
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glVertex3f(-1.0f, -1.0f,  1.0f);
-    glVertex3f(-1.0f,  1.0f,  1.0f);
-    glVertex3f(-1.0f,  1.0f, -1.0f);
+    // Lateral esquerda 
+    glVertex3f(x, y, z + depth);
+    glVertex3f(x, y + hight, z + depth);
+    glVertex3f(x + width, y + hight, z + depth);
+    glVertex3f(x + width, y, z + depth);
+
 
     glEnd();  // Fim do desenho dos quadrados
 }
 
 void desenha() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    drawCube();
+
+    gluLookAt(-5.0, 8.0, 3.0, //lookfrom 
+    5, 0, 0, //lookat 
+    0, 1, 0); //vetor normal
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor ciano
+
+    drawCube(ALTURA_BASE, LARGURA_BASE, PROFUNDIDADE_BASE, 
+            0,0,0); // base do pendulo
+
+    glColor3f(0.5f, 0.5f, 0.5f); // Cor ciano
+    
+    //haste 1
+    drawCube(1,5,5, 
+            0,0,0);
+
+    //haste 2
+    drawCube(1,5,5, 
+            0,0,0);
+
+    //haste 3
+    drawCube(1,5,5, 
+            0,0,0);
+    
+    //haste 4
+    drawCube(1,5,5, 
+            0,0,0);
+
     glFlush();
 }
 

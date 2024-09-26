@@ -8,6 +8,10 @@ GLfloat LARGURA_BASE = 7.5,
         ALTURA_BASE = 0.8,
         PROFUNDIDADE_BASE = 5.5;
 
+GLfloat LARGURA_HASTE = 0.5,
+        ALTURA_HASTE = 5,
+        PROFUNDIDADE_HASTE = 0.5;
+
 
 void initGlut(int *argc, char **argv) {
     glutInit(argc, argv);
@@ -16,7 +20,7 @@ void initGlut(int *argc, char **argv) {
     int largura_tela = glutGet(GLUT_SCREEN_WIDTH);
     int altura_tela = glutGet(GLUT_SCREEN_HEIGHT);
     glutInitWindowPosition((largura_tela - LARGURA) / 2, (altura_tela - ALTURA) / 2);
-    glutCreateWindow("Pêdulo de newton");
+    glutCreateWindow("Pendulo De Newton");
     glutSetCursor(GLUT_CURSOR_NONE); 
 }
 
@@ -85,7 +89,7 @@ void desenha() {
     5, 0, 0, //lookat 
     0, 1, 0); //vetor normal
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Cor ciano
+    glColor3f(1.0f, 1.0f, 1.0f);
 
     drawCube(ALTURA_BASE, LARGURA_BASE, PROFUNDIDADE_BASE, 
             0,0,0); // base do pendulo
@@ -93,20 +97,27 @@ void desenha() {
     glColor3f(0.5f, 0.5f, 0.5f); // Cor ciano
     
     //haste 1
-    drawCube(1,5,5, 
-            0,0,0);
+    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+            1,ALTURA_BASE,0.5);
 
     //haste 2
-    drawCube(1,5,5, 
-            0,0,0);
+    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+            LARGURA_BASE - 1 ,ALTURA_BASE, 0.5);
 
     //haste 3
-    drawCube(1,5,5, 
-            0,0,0);
+    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+            LARGURA_BASE - 1 ,ALTURA_BASE, PROFUNDIDADE_BASE - 1);
     
     //haste 4
-    drawCube(1,5,5, 
-            0,0,0);
+    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+            1,ALTURA_BASE,PROFUNDIDADE_BASE - 1);
+ 
+    //suportes das cordas
+//     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+//             1,ALTURA_BASE,PROFUNDIDADE_BASE - 1);
+
+//     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+//             1,ALTURA_BASE,PROFUNDIDADE_BASE - 1);
 
     glFlush();
 }

@@ -21,7 +21,7 @@ void initGlut(int *argc, char **argv) {
     int altura_tela = glutGet(GLUT_SCREEN_HEIGHT);
     glutInitWindowPosition((largura_tela - LARGURA) / 2, (altura_tela - ALTURA) / 2);
     glutCreateWindow("Pendulo De Newton");
-    glutSetCursor(GLUT_CURSOR_NONE); 
+    //glutSetCursor(GLUT_CURSOR_NONE); 
 }
 
 void inicializacao() {
@@ -38,7 +38,9 @@ void inicializacao() {
 }
 
 void drawCube(GLfloat hight, GLfloat width, GLfloat depth,
-              float x, float y, float z) {
+              float x, float y, float z, float R, float G, float B) {
+
+    glColor3f(R, G, B);
 
     glBegin(GL_QUADS);  // Inicia o desenho dos quadrados
 
@@ -85,32 +87,32 @@ void drawCube(GLfloat hight, GLfloat width, GLfloat depth,
 void desenha() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    gluLookAt(-5.0, 8.0, 3.0, //lookfrom 
+    gluLookAt(0, 10, 10, //lookfrom 
     5, 0, 0, //lookat 
     0, 1, 0); //vetor normal
 
     glColor3f(1.0f, 1.0f, 1.0f);
 
     drawCube(ALTURA_BASE, LARGURA_BASE, PROFUNDIDADE_BASE, 
-            0,0,0); // base do pendulo
+            0,0,0, 1, 1, 1); // base do pendulo
 
     glColor3f(0.5f, 0.5f, 0.5f); // Cor ciano
     
     //haste 1
     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
-            1,ALTURA_BASE,0.5);
+            1,ALTURA_BASE,0.5, 1, 0, 0); // vermelha
 
     //haste 2
     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
-            LARGURA_BASE - 1 ,ALTURA_BASE, 0.5);
+            LARGURA_BASE - 1 ,ALTURA_BASE, 0.5, 0, 1, 0); //verde
 
     //haste 3
     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
-            LARGURA_BASE - 1 ,ALTURA_BASE, PROFUNDIDADE_BASE - 1);
+            LARGURA_BASE - 1 ,ALTURA_BASE, PROFUNDIDADE_BASE - 1, 1, 1, 0); //amarelo
     
     //haste 4
     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
-            1,ALTURA_BASE,PROFUNDIDADE_BASE - 1);
+            1,ALTURA_BASE,PROFUNDIDADE_BASE - 1, 0, 0, 1); //azul
  
     //suportes das cordas
 //     drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
@@ -126,7 +128,7 @@ int main(int argc, char *argv[]) {
     initGlut(&argc, argv);
     inicializacao();
     glutDisplayFunc(desenha);
-    glutWarpPointer(LARGURA / 2, ALTURA / 2);
+    //glutWarpPointer(LARGURA / 2, ALTURA / 2);
     glutMainLoop();
     return 0;
 }

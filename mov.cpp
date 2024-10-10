@@ -1,128 +1,62 @@
 #include <GL/glut.h>
-#include <math.h>
 
-// Posição inicial da câmera e ângulos de rotação
-float posX = 0.0f, posY = 0.0f, posZ = 5.0f;
-float yaw = -90.0f, pitch = 0.0f;
-int windowWidth = 600, windowHeight = 600; // Tamanho da janela
-float camSpeed = 0.05f;
+// Definir a posição inicial da câmera
+GLfloat camposx = 0.0f, camposy = 0.0f, camposz = 5.0f;  // Câmera posicionada a 5 unidades no eixo Z
+GLfloat alvox = 0.0f, alvoy = 0.0f, alvoz = 0.0f;        // Câmera olhando para a origem (0, 0, 0)
 
-// Função para configurar a câmera
-void atualizarCamera() {
-    float frontX = cosf(yaw * M_PI / 180.0f) * cosf(pitch * M_PI / 180.0f);
-    float frontY = sinf(pitch * M_PI / 180.0f);
-    float frontZ = sinf(yaw * M_PI / 180.0f) * cosf(pitch * M_PI / 180.0f);
-
-    // Definir para onde a câmera está olhando
-    gluLookAt(posX, posY, posZ, posX + frontX, posY + frontY, posZ + frontZ, 0.0f, 1.0f, 0.0f);
+// Função para configurar a câmera usando gluLookAt
+void posicionarCamara() {
+    gluLookAt(camposx, camposy, camposz,  // Posição da câmera
+              alvox, alvoy, alvoz,        // Ponto para onde a câmera está olhando (origem)
+              0.0f, 1.0f, 0.0f);         // Vetor "up" (eixo Y positivo)
 }
 
-// Callback para o movimento do mouse
-void movimentoMouse(int x, int y) {
-    int centerX = windowWidth / 2;
-    int centerY = windowHeight / 2;
-
-    if (x == centerX && y == centerY) {
-        // Se o cursor já estiver no centro, não faz nada
-        return;
-    }
-
-    // Calcula o deslocamento do mouse
-    float offsetX = x - centerX;
-    float offsetY = centerY - y; // Invertido porque o eixo Y é invertido
-
-    float sensitivity = 0.1f; // Sensibilidade do mouse
-    offsetX *= sensitivity;
-    offsetY *= sensitivity;
-
-    yaw += offsetX;
-    pitch += offsetY;
-
-    // Limitar o pitch para evitar "olhar para trás"
-    if (pitch > 89.0f) pitch = 89.0f;
-    if (pitch < -89.0f) pitch = -89.0f;
-
-    // Reposiciona o cursor no centro da janela
-    glutWarpPointer(centerX, centerY);
-
-    glutPostRedisplay(); // Atualiza a tela
-}
-
-// Callback para o movimento do teclado
-void teclado(unsigned char key, int x, int y) {
-    float frontX = cosf(yaw * M_PI / 180.0f) * cosf(pitch * M_PI / 180.0f);
-    float frontY = sinf(pitch * M_PI / 180.0f);
-    float frontZ = sinf(yaw * M_PI / 180.0f) * cosf(pitch * M_PI / 180.0f);
-
-    // Vetor "frontal"
-    float front[3] = { frontX, frontY, frontZ };
-
-    // Vetor "direito" (cross entre front e o vetor para cima (0,1,0))
-    float right[3] = { sinf(yaw * M_PI / 180.0f), 0.0f, -cosf(yaw * M_PI / 180.0f) };
-
-    switch (key) {
-        case 'w': // Move para frente
-            posX += front[0] * camSpeed;
-            posY += front[1] * camSpeed;
-            posZ += front[2] * camSpeed;
-            break;
-        case 's': // Move para trás
-            posX -= front[0] * camSpeed;
-            posY -= front[1] * camSpeed;
-            posZ -= front[2] * camSpeed;
-            break;
-        case 'a': // Move para a esquerda
-            posX -= right[0] * camSpeed;
-            posZ -= right[2] * camSpeed;
-            break;
-        case 'd': // Move para a direita
-            posX += right[0] * camSpeed;
-            posZ += right[2] * camSpeed;
-            break;
-    }
-    glutPostRedisplay(); // Atualiza a tela
-}
-
-// Função de renderização
+// Função para desenhar a cena
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-
-    atualizarCamera();
-
-    // Aqui você pode desenhar o "mundo" (cubos, etc.)
-    glBegin(GL_QUADS);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
-    glVertex3f(-1.0f,  1.0f, -1.0f);
-    glEnd();
-
-    glutSwapBuffers();
+    
+    glLoadIdentity();  // Carrega a matriz identidade para reiniciar qualquer transformação anterior
+    posicionarCamara();  // Configura a câmera
+    
+    // Desenha o primeiro cubo na origem (não transladado)
+    glPushMatrix();  // Salva a matriz atual
+    glColor3f(1.0f, 0.0f, 0.0f);  // Define a cor do cubo (vermelho)
+    glutSolidCube(1.0);  // Desenha um cubo de tamanho 1 na origem
+    glPopMatrix();  // Restaura a matriz
+    
+    // Desenha o segundo cubo transladado para a direita (3, 0, 0)
+    glPushMatrix();
+    glTranslatef(3.0f, 0.0f, 0.0f);  // Translada o cubo 3 unidades no eixo X
+    glColor3f(0.0f, 1.0f, 0.0f);  // Define a cor do cubo (verde)
+    glutSolidCube(1.0);  // Desenha o cubo
+    glPopMatrix();
+    
+    // Desenha o terceiro cubo transladado para cima (0, 3, 0)
+    glPushMatrix();
+    glTranslatef(0.0f, 3.0f, 0.0f);  // Translada o cubo 3 unidades no eixo Y
+    glColor3f(0.0f, 0.0f, 1.0f);  // Define a cor do cubo (azul)
+    glutSolidCube(1.0);  // Desenha o cubo
+    glPopMatrix();
+    
+    glFlush();
 }
 
-// Inicialização
+// Função de inicialização
 void init() {
-    glEnable(GL_DEPTH_TEST); // Habilita teste de profundidade
-    glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);  // Habilita teste de profundidade para renderizar objetos 3D corretamente
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // Define a cor de fundo (preto)
 }
 
-int main(int argc, char **argv) {
+// Função principal
+int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(windowWidth, windowHeight);
-    glutCreateWindow("Movimento de Mouse Centralizado");
-
-    init();
-
-    glutDisplayFunc(display);
-    glutKeyboardFunc(teclado);
-    glutPassiveMotionFunc(movimentoMouse); // Função para capturar o movimento do mouse
-
-    // Centraliza o cursor ao iniciar
-    glutWarpPointer(windowWidth / 2, windowHeight / 2);
-
-    glutMainLoop();
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);  // Ativa o buffer de profundidade
+    glutInitWindowSize(800, 600);  // Tamanho da janela
+    glutCreateWindow("Câmera e Translações OpenGL");  // Cria a janela
+    
+    init();  // Chama a função de inicialização
+    glutDisplayFunc(display);  // Registra a função de desenho
+    
+    glutMainLoop();  // Entra no loop principal do OpenGL
     return 0;
 }

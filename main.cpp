@@ -5,31 +5,27 @@
 GLint LARGURA = 600,
       ALTURA = 600;
 
-GLfloat LARGURA_BASE = 7.5,
+GLfloat LARGURA_BASE = 10,
         ALTURA_BASE = 0.8,
         PROFUNDIDADE_BASE = 5.5;
 
-GLfloat LARGURA_HASTE = 0.5,
+GLfloat LARGURA_HASTE = 0.25,
         ALTURA_HASTE = 5,
-        PROFUNDIDADE_HASTE = 0.5;
+        PROFUNDIDADE_HASTE = 0.25;
 
 int qtd_esferas = 5;
 float diametro_esfera = 1;
-float x_lim = 4;
 
-float camposx = 0;
-float camposy = 10;
-float camposz = 10.0;
 float camrotx = 0;
 float camroty = 0;
 
 bool control_flag = true;
-float raio;
-float angulo = 0;
-float incremento = -0.1;
-float rotate_axis_x = LARGURA_BASE/2 - diametro_esfera*((qtd_esferas-1) / 2);
-float rotate_axis_y;
-float rotate_axis_z;
+float raio = 2.75;
+float incremento = -0.15;
+float deslocamento_x = LARGURA_BASE/2 - diametro_esfera*((qtd_esferas-1) / 2);
+
+static int menuPrincipal, menuTotalEsf, menuEnMovimiento;
+
 
 void initGlut(int *argc, char **argv) {
     glutInit(argc, argv);
@@ -56,7 +52,7 @@ void inicializacao() {
               0, 1, 0); //vetor normal
 }
 
-void drawCube(GLfloat hight, GLfloat width, GLfloat depth,
+void desenhaCubo(GLfloat hight, GLfloat width, GLfloat depth,
               float x, float y, float z, float R, float G, float B) {
 
     GLfloat vertex1[3] = {x - width/2, y, z - depth/2}; 
@@ -151,7 +147,7 @@ void desenha_fio(float x_1, float y_1, float z_1,
 
 }
 
-void posicionarCamara() {
+void posicionarCamera() {
     glTranslatef(LARGURA_BASE/2, ALTURA_BASE + ALTURA_HASTE/2, PROFUNDIDADE_BASE/2);
     glRotatef(camrotx, 1.0, 0.0, 0.0);
     glRotatef(camroty, 0.0, 1.0, 0.0);
@@ -160,102 +156,75 @@ void posicionarCamara() {
     camroty = 0;
 }
 
-void esferaAmarrada(float diametro, float angulo,
-                    float x_c, float y_c, float z_c){
-
-    glPushMatrix();  // Salva a matriz de transformação atual
-    glTranslatef(x_c, y_c, z_c);
-    glRotatef(angulo,0,0,1);
-    glColor3f(1.0f, 0.0f, 0.0f);  // Define a cor da esfera (vermelha)
-    glutSolidSphere(diametro/2, 20, 20);  // Desenha uma esfera de raio 1.0 na origem
-    glPopMatrix();
-
+void desenha_base(){
+    desenhaCubo(ALTURA_BASE, LARGURA_BASE, PROFUNDIDADE_BASE, 
+            LARGURA_BASE/2 ,0, PROFUNDIDADE_BASE /2, 
+            1, 1, 1);
 }
 
-void desenha() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void desenha_hastes(){
 
-    posicionarCamara();
-
-    glColor3f(1.0f, 1.0f, 1.0f);
-
-    drawCube(ALTURA_BASE, LARGURA_BASE, PROFUNDIDADE_BASE, 
-            LARGURA_BASE/2 ,0, PROFUNDIDADE_BASE /2, 
-            1, 1, 1); // base do pendulo
-
-    //haste 1
-    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+        //haste 1
+    desenhaCubo(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
             1,ALTURA_BASE,1,
             0.5, 0.5, 0.5); // vermelha
 
     //haste 2
-    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+    desenhaCubo(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
             LARGURA_BASE - 1,ALTURA_BASE, 1,
             0.5, 0.5, 0.5); //verde
 
     //haste 3
-    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+    desenhaCubo(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
             LARGURA_BASE - 1 ,ALTURA_BASE, PROFUNDIDADE_BASE - 1,
             0.5, 0.5, 0.5); //amarelo
     
     //haste 4
-    drawCube(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
+    desenhaCubo(ALTURA_HASTE, LARGURA_HASTE, PROFUNDIDADE_HASTE, 
             1, ALTURA_BASE, PROFUNDIDADE_BASE - 1,
             0.5, 0.5, 0.5); //azul
- 
-    //suportes das cordas
-    drawCube(PROFUNDIDADE_HASTE, LARGURA_BASE - 1.5, PROFUNDIDADE_HASTE,
+
+}
+
+void desenha_suportes(){
+        //suportes das cordas
+    desenhaCubo(PROFUNDIDADE_HASTE, LARGURA_BASE - 1.5, PROFUNDIDADE_HASTE,
             LARGURA_BASE/2, ALTURA_BASE + ALTURA_HASTE, PROFUNDIDADE_BASE - 1,
             0.5, 0.5, 0.5);
 
-    drawCube(PROFUNDIDADE_HASTE, LARGURA_BASE - 1.5, PROFUNDIDADE_HASTE, 
+    desenhaCubo(PROFUNDIDADE_HASTE, LARGURA_BASE - 1.5, PROFUNDIDADE_HASTE, 
             LARGURA_BASE/2, ALTURA_BASE + ALTURA_HASTE, 1,
             0.5, 0.5, 0.5);
+}
 
-    //desenhado as esferas
-
+void desenha_esferas_pendulo(){
     float initial_position_x = LARGURA_BASE/2 - diametro_esfera*((qtd_esferas-1) / 2);
 
     double y_o = ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2;
-    double x_o = initial_position_x;
-
-    raio = 2.75;
-
+    
     double a = 1;
     double b = -2*y_o;
     double c;
+
+    int indice_esfera_movimento = control_flag ? 0 : qtd_esferas - 1;
+
     for(int i = 0; i < qtd_esferas; i++){
 
-        if(i == 0 && control_flag){
-            c = pow(y_o, 2) + pow(rotate_axis_x - x_o,2) - pow(raio,2);
+        if(i == indice_esfera_movimento){
+            c = pow(y_o, 2) + pow((deslocamento_x + diametro_esfera*i) - (initial_position_x + diametro_esfera*i),2) - pow(raio,2);
+
             desenha_esfera(diametro_esfera,
-            rotate_axis_x, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2);
+                        deslocamento_x + diametro_esfera*i, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2);
 
-            c = pow(y_o, 2) + pow(rotate_axis_x - x_o,2) - pow(raio - diametro_esfera/4,2);
-
-            desenha_fio(rotate_axis_x, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2,
+            desenha_fio(deslocamento_x + diametro_esfera*i, menorRaiz(a,b,c) + diametro_esfera/2, PROFUNDIDADE_BASE/2,
                         initial_position_x + diametro_esfera*i,ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2,1);
             
-            desenha_fio(rotate_axis_x, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2,
-                        initial_position_x + diametro_esfera*i,ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2, PROFUNDIDADE_BASE - 1);
-
-        }
-        else if(i == qtd_esferas - 1 && !control_flag){
-            c = pow(y_o, 2) + pow((rotate_axis_x + diametro_esfera*i) - (x_o + diametro_esfera*i),2) - pow(raio,2);
-            desenha_esfera(diametro_esfera,
-            rotate_axis_x + diametro_esfera*i, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2);
-
-            c = pow(y_o, 2) + pow((rotate_axis_x + diametro_esfera*i) - (x_o + diametro_esfera*i),2) - pow(raio - diametro_esfera/4,2);
-
-            desenha_fio(rotate_axis_x + diametro_esfera*i, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2,
-                        initial_position_x + diametro_esfera*i,ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2,1);
-            
-            desenha_fio(rotate_axis_x + diametro_esfera*i, menorRaiz(a,b,c), PROFUNDIDADE_BASE/2,
+            desenha_fio(deslocamento_x + diametro_esfera*i, menorRaiz(a,b,c) + diametro_esfera/2, PROFUNDIDADE_BASE/2,
                         initial_position_x + diametro_esfera*i,ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2, PROFUNDIDADE_BASE - 1);
         }
         else{ 
             desenha_esfera(diametro_esfera,
-            initial_position_x + diametro_esfera*i, ALTURA_BASE + ALTURA_HASTE/2, PROFUNDIDADE_BASE/2);
+                        initial_position_x + diametro_esfera*i, ALTURA_BASE + ALTURA_HASTE/2, PROFUNDIDADE_BASE/2);
 
             desenha_fio(initial_position_x + diametro_esfera*i, ALTURA_BASE + ALTURA_HASTE/2 + diametro_esfera/2, PROFUNDIDADE_BASE/2,
                         initial_position_x + diametro_esfera*i,ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2,1);
@@ -264,6 +233,17 @@ void desenha() {
                         initial_position_x + diametro_esfera*i,ALTURA_BASE + ALTURA_HASTE + PROFUNDIDADE_HASTE/2, PROFUNDIDADE_BASE - 1);
         }
     }
+}
+
+void desenha() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    posicionarCamera();
+
+    desenha_base();
+    desenha_hastes();
+    desenha_suportes();
+    desenha_esferas_pendulo();
 
     glFlush();
 }
@@ -295,12 +275,12 @@ void update(int value){
 
     float basis = LARGURA_BASE/2 - diametro_esfera*((qtd_esferas-1) / 2);
 
-    rotate_axis_x += incremento;
+    deslocamento_x += incremento;
 
-    if(rotate_axis_x <= basis-2 || rotate_axis_x >= basis+2)
+    if(deslocamento_x <= basis-2 || deslocamento_x >= basis+2)
         incremento = -incremento;
     
-    if(abs(rotate_axis_x - basis) <= 0.01)
+    if(abs(deslocamento_x - basis) <= 0.01)
         control_flag = !control_flag;
 
     glutPostRedisplay();
@@ -308,10 +288,36 @@ void update(int value){
 
 }
 
+void handleMenuTotalEsf(int m) { 
+    qtd_esferas = m;
+    deslocamento_x = LARGURA_BASE/2 - diametro_esfera*((qtd_esferas-1) / 2);
+    control_flag = true;
+    incremento = -0.15;
+    glutPostRedisplay();
+}
+
+void prepararMenu() {
+    menuTotalEsf = glutCreateMenu(handleMenuTotalEsf);
+    glutAddMenuEntry("1", 1);
+    glutAddMenuEntry("2", 2);
+    glutAddMenuEntry("3", 3);
+    glutAddMenuEntry("4", 4);
+    glutAddMenuEntry("5", 5);
+    glutAddMenuEntry("6", 6);
+    glutAddMenuEntry("7", 7);
+
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+    
+}
+
 int main(int argc, char *argv[]) {
     initGlut(&argc, argv);
     inicializacao();
+    
+    prepararMenu();
+
     glutDisplayFunc(desenha);
+    //glutMouseFunc(handleMouse);
     glutSpecialFunc(handleSpecialKeys);
     glutTimerFunc(20, update, 0);
     glutMainLoop();

@@ -1,62 +1,121 @@
 #include <GL/glut.h>
+#include <SOIL/SOIL.h>  // Biblioteca SOIL para carregar texturas
 
-// Definir a posição inicial da câmera
-GLfloat camposx = 0.0f, camposy = 0.0f, camposz = 5.0f;  // Câmera posicionada a 5 unidades no eixo Z
-GLfloat alvox = 0.0f, alvoy = 0.0f, alvoz = 0.0f;        // Câmera olhando para a origem (0, 0, 0)
+GLuint textureID;
 
-// Função para configurar a câmera usando gluLookAt
-void posicionarCamara() {
-    gluLookAt(camposx, camposy, camposz,  // Posição da câmera
-              alvox, alvoy, alvoz,        // Ponto para onde a câmera está olhando (origem)
-              0.0f, 1.0f, 0.0f);         // Vetor "up" (eixo Y positivo)
+// Função para carregar a textura de um arquivo
+void loadTexture(const char* filename) {
+    // Gera um identificador para a textura
+    glGenTextures(1, &textureID);
+    
+    // Faz a ligação da textura como uma textura 2D
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    
+    // Carrega a imagem da textura usando SOIL
+    textureID = SOIL_load_OGL_texture(
+        filename, 
+        SOIL_LOAD_AUTO, 
+        SOIL_CREATE_NEW_ID, 
+        SOIL_FLAG_INVERT_Y
+    );
+    
+    if (textureID == 0) {
+        printf("Erro ao carregar a textura: %s\n", SOIL_last_result());
+    }
+
+    // Define parâmetros de textura
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-// Função para desenhar a cena
+// Função para desenhar um cubo com textura
+void drawCube(GLfloat height, GLfloat width, GLfloat depth,
+              float x, float y, float z, GLuint textureID) {
+    GLfloat vertex1[3] = {x - width / 2, y, z - depth / 2};
+    GLfloat vertex2[3] = {x - width / 2, y + height, z - depth / 2};
+    GLfloat vertex3[3] = {x - width / 2, y + height, z + depth / 2};
+    GLfloat vertex4[3] = {x - width / 2, y, z + depth / 2};
+
+    GLfloat vertex5[3] = {x + width / 2, y, z - depth / 2};
+    GLfloat vertex6[3] = {x + width / 2, y + height, z - depth / 2};
+    GLfloat vertex7[3] = {x + width / 2, y + height, z + depth / 2};
+    GLfloat vertex8[3] = {x + width / 2, y, z + depth / 2};
+
+    // Ativa a textura
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glBegin(GL_QUADS);  // Inicia o desenho dos quadrados com textura
+
+    // Frente
+    glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertex1);
+    glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertex2);
+    glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertex3);
+    glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertex4);
+
+    // Traseira
+    glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertex5);
+    glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertex6);
+    glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertex7);
+    glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertex8);
+
+    // Superior
+    glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertex2);
+    glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertex3);
+    glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertex7);
+    glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertex6);
+
+    // Inferior
+    glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertex1);
+    glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertex4);
+    glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertex8);
+    glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertex5);
+
+    // Lateral direita
+    glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertex3);
+    glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertex4);
+    glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertex8);
+    glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertex7);
+
+    // Lateral esquerda
+    glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertex1);
+    glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertex2);
+    glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertex6);
+    glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertex5);
+
+    glEnd();  // Fim do desenho dos quadrados com textura
+}
+
+// Função de exibição
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glLoadIdentity();  // Carrega a matriz identidade para reiniciar qualquer transformação anterior
-    posicionarCamara();  // Configura a câmera
-    
-    // Desenha o primeiro cubo na origem (não transladado)
-    glPushMatrix();  // Salva a matriz atual
-    glColor3f(1.0f, 0.0f, 0.0f);  // Define a cor do cubo (vermelho)
-    glutSolidCube(1.0);  // Desenha um cubo de tamanho 1 na origem
-    glPopMatrix();  // Restaura a matriz
-    
-    // Desenha o segundo cubo transladado para a direita (3, 0, 0)
-    glPushMatrix();
-    glTranslatef(3.0f, 0.0f, 0.0f);  // Translada o cubo 3 unidades no eixo X
-    glColor3f(0.0f, 1.0f, 0.0f);  // Define a cor do cubo (verde)
-    glutSolidCube(1.0);  // Desenha o cubo
-    glPopMatrix();
-    
-    // Desenha o terceiro cubo transladado para cima (0, 3, 0)
-    glPushMatrix();
-    glTranslatef(0.0f, 3.0f, 0.0f);  // Translada o cubo 3 unidades no eixo Y
-    glColor3f(0.0f, 0.0f, 1.0f);  // Define a cor do cubo (azul)
-    glutSolidCube(1.0);  // Desenha o cubo
-    glPopMatrix();
-    
-    glFlush();
+
+    // Desenha o cubo com textura
+    drawCube(2.0f, 2.0f, 2.0f, 0.0f, 0.0f, -5.0f, textureID);
+
+    glutSwapBuffers();  // Troca os buffers
 }
 
-// Função de inicialização
+// Inicialização do OpenGL
 void init() {
-    glEnable(GL_DEPTH_TEST);  // Habilita teste de profundidade para renderizar objetos 3D corretamente
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // Define a cor de fundo (preto)
+    glEnable(GL_TEXTURE_2D);  // Habilita texturas 2D
+    glEnable(GL_DEPTH_TEST);  // Habilita o teste de profundidade
+
+    // Carrega a textura de um arquivo de imagem
+    loadTexture("Poliigon_WoodVeneerOak_7760/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg");
 }
 
 // Função principal
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);  // Ativa o buffer de profundidade
-    glutInitWindowSize(800, 600);  // Tamanho da janela
-    glutCreateWindow("Câmera e Translações OpenGL");  // Cria a janela
-    
-    init();  // Chama a função de inicialização
-    glutDisplayFunc(display);  // Registra a função de desenho
-    
-    glutMainLoop();  // Entra no loop principal do OpenGL
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(800, 600);
+    glutCreateWindow("Cubo com Textura");
+
+    init();
+
+    glutDisplayFunc(display);
+    glutMainLoop();
     return 0;
 }

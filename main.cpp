@@ -44,6 +44,11 @@ GLfloat matDifuso_fio[] = { 0.9f, 0.9f, 0.95f, 1.0f };
 GLfloat matEspecular_fio[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 GLfloat brilho_fio = 50.0f;                               
 
+GLfloat luzAmbiente[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+GLfloat luzDifusa[] = { 1.0f, 1.0f, 1.0f, 1.0f  };    
+GLfloat luzEspecular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; 
+GLfloat posicaoLuz[] = { 2.5f, 10.0f, 20.0f, 1.0f }; 
+
 
 static int menuTotalEsf;
 
@@ -72,11 +77,6 @@ void inicializacao() {
               LARGURA_BASE/2, ALTURA_HASTE/2, 0, //lookat 
               0, 1, 0); //vetor normal
 
-    GLfloat luzAmbiente[] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Luz ambiente
-    GLfloat luzDifusa[] = { 1.0f, 1.0f, 1.0f, 1.0f  };    // Luz difusa
-    GLfloat luzEspecular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Luz especular
-    GLfloat posicaoLuz[] = { 2.5f, 10.0f, 20.0f, 1.0f };   // Posição da luz (X, Y, Z, W)
-
     // Ativar a iluminação
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);  // Usar GL_LIGHT0
@@ -85,7 +85,7 @@ void inicializacao() {
     glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
     glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular);
-    glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);  // Posicionar a luz acima do objeto
+    glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
 
 }
 
@@ -205,11 +205,14 @@ void desenha_fio(float x_1, float y_1, float z_1,
 
 }
 
+
 void posicionarCamera() {
     glTranslatef(LARGURA_BASE/2, ALTURA_BASE + ALTURA_HASTE/2, PROFUNDIDADE_BASE/2);
     glRotatef(camrotx, 1.0, 0.0, 0.0);
     glRotatef(camroty, 0.0, 1.0, 0.0);
+    glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
     glTranslatef(-LARGURA_BASE/2, -(ALTURA_BASE + ALTURA_HASTE/2), -PROFUNDIDADE_BASE/2);
+
     camrotx = 0;
     camroty = 0;
 }
@@ -299,7 +302,6 @@ void desenha_esferas_pendulo(){
 
 void desenha() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     posicionarCamera();
 
     desenha_base();

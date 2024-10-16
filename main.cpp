@@ -13,6 +13,8 @@ GLfloat LARGURA_HASTE = 0.25,
         ALTURA_HASTE = 5,
         PROFUNDIDADE_HASTE = 0.25;
 
+static int menuTotalEsf;
+
 int qtd_esferas = 5;
 float diametro_esfera = 1;
 
@@ -50,9 +52,6 @@ GLfloat luzEspecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat posicaoLuz[] = { 2.5f, 10.0f, 20.0f, 1.0f }; 
 
 
-static int menuTotalEsf;
-
-
 void initGlut(int *argc, char **argv) {
     glutInit(argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH); // Habilita o teste de profundidade
@@ -68,20 +67,19 @@ void inicializacao() {
     glEnable(GL_DEPTH_TEST); // Habilita o teste de profundidade
 
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
     gluPerspective(45.0, (GLfloat)LARGURA / (GLfloat)ALTURA, 1.0, 100.0); // Define a perspectiva
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
     gluLookAt(2.5, 10, 20, //lookfrom 
               LARGURA_BASE/2, ALTURA_HASTE/2, 0, //lookat 
               0, 1, 0); //vetor normal
 
     // Ativar a iluminação
     glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);  // Usar GL_LIGHT0
+    glEnable(GL_LIGHT0); 
 
-    // Definir a luz
     glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
     glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular);

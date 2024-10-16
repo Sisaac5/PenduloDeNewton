@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <cmath>
 
+#include "imageloader.h"
+
 GLint LARGURA = 600,
       ALTURA = 600;
 
@@ -24,8 +26,32 @@ float raio = 2.75;
 float incremento = -0.15;
 float deslocamento_x = LARGURA_BASE/2 - diametro_esfera*((qtd_esferas-1) / 2);
 
-static int menuPrincipal, menuTotalEsf, menuEnMovimiento;
+static int menuTotalEsf;
 
+GLfloat posicaoLuz[4] = {0.0, 1.0, 1.0, 0.0};
+
+GLuint _textureId;
+
+
+GLuint loadTexture(Image *image){
+
+    GLuint textureId;
+    glGenTextures(1, &textureId);   //3 texturas: base, haste e esfera
+
+    glBindTexture(GL_TEXTURE_2D, textureId); 
+    
+    glTexImage2D(GL_TEXTURE_2D,                
+                 0,                            
+                 GL_RGB,                       
+                 image->width, image->height,  
+                 0,                            
+                 GL_RGB,
+                 GL_UNSIGNED_BYTE,
+                                  
+                 image->pixels); 
+
+    return textureId;
+}
 
 void initGlut(int *argc, char **argv) {
     glutInit(argc, argv);
@@ -38,6 +64,38 @@ void initGlut(int *argc, char **argv) {
 }
 
 void inicializacao() {
+
+    // Habilitar a iluminação
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    // Definir uma fonte de luz direcional
+    GLfloat light_position[] = {0.0, 1.0, 1.0, 0.0};
+    GLfloat light_ambient[] = {0.2, 0.2, 0.2, 1.0};
+    GLfloat light_diffuse[] = {0.8, 0.8, 0.8, 1.0};
+    GLfloat light_specular[] = {1.0, 1.0, 1.0, 1.0};
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+
+    // Definir o material
+    GLfloat mat_ambient[] = {0.2, 0.2, 0.2, 1.0};
+    GLfloat mat_diffuse[] = {0.8, 0.8, 0.8, 1.0};
+    GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
+    GLfloat shininess = 100.0;
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
+    //armazenar as texturas
+    Image* image = loadBMP("wooden.bmp");
+    _textureId = loadTexture(image);
+    delete image;
+
     glClearColor(0, 0, 0, 0);
     glEnable(GL_DEPTH_TEST); // Habilita o teste de profundidade
 
@@ -50,6 +108,24 @@ void inicializacao() {
     gluLookAt(2.5, 10, 20, //lookfrom 
               LARGURA_BASE/2, ALTURA_HASTE/2, 0, //lookat 
               0, 1, 0); //vetor normal
+}
+
+void posicionarLuz() {
+    glPushMatrix();
+    glRotatef(-camrotx, 1.0, 0.0, 0.0);
+    glRotatef(-camroty, 0.0, 1.0, 0.0);
+    glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
+    glPopMatrix();
+}
+
+void posicionarCamera() {
+    glTranslatef(LARGURA_BASE/2, ALTURA_BASE + ALTURA_HASTE/2, PROFUNDIDADE_BASE/2);
+    glRotatef(camrotx, 1.0, 0.0, 0.0);
+    glRotatef(camroty, 0.0, 1.0, 0.0);
+    posicionarLuz();
+    glTranslatef(-LARGURA_BASE/2, -(ALTURA_BASE + ALTURA_HASTE/2), -PROFUNDIDADE_BASE/2);
+    camrotx = 0;
+    camroty = 0;
 }
 
 void desenhaCubo(GLfloat hight, GLfloat width, GLfloat depth,
@@ -106,6 +182,7 @@ void desenhaCubo(GLfloat hight, GLfloat width, GLfloat depth,
     glVertex3fv(vertex5);
 
     glEnd();  // Fim do desenho dos quadrados
+
 }
 
 double menorRaiz(double a, double b, double c) {
@@ -147,19 +224,21 @@ void desenha_fio(float x_1, float y_1, float z_1,
 
 }
 
-void posicionarCamera() {
-    glTranslatef(LARGURA_BASE/2, ALTURA_BASE + ALTURA_HASTE/2, PROFUNDIDADE_BASE/2);
-    glRotatef(camrotx, 1.0, 0.0, 0.0);
-    glRotatef(camroty, 0.0, 1.0, 0.0);
-    glTranslatef(-LARGURA_BASE/2, -(ALTURA_BASE + ALTURA_HASTE/2), -PROFUNDIDADE_BASE/2);
-    camrotx = 0;
-    camroty = 0;
-}
+
 
 void desenha_base(){
+
+    // Habilitar a textura e definir as coordenadas de textura
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, _textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     desenhaCubo(ALTURA_BASE, LARGURA_BASE, PROFUNDIDADE_BASE, 
             LARGURA_BASE/2 ,0, PROFUNDIDADE_BASE /2, 
             1, 1, 1);
+
+    glDisable(GL_TEXTURE_2D);
 }
 
 void desenha_hastes(){
@@ -266,6 +345,7 @@ void handleSpecialKeys (int key, int x, int y) {
         case GLUT_KEY_DOWN:
             camrotx = inc; 
             break;
+
     }
 
     glutPostRedisplay();
@@ -286,7 +366,7 @@ void update(int value){
     glutPostRedisplay();
     glutTimerFunc(20, update, 0);
 
-}
+} 
 
 void handleMenuTotalEsf(int m) { 
     qtd_esferas = m;

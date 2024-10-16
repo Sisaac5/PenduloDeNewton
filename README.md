@@ -32,8 +32,10 @@ Para limpar o arquivo executável:
 
   `make clean`
 
-## Interação
+## Aplicação
 
 Você pode interagir com a animação utilizando as setas direcionais no teclado para rotacionar o pêndulo.
 
 Ainda, ao clicar com o botão direito do mouse, é possível selecionar a quantidade de esferas no pêndulo.
+
+![Erro na imagem](https://i.imgur.com/wAF43Mi.png)
